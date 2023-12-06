@@ -1,25 +1,39 @@
-# ImOGuizmo
+# ImViewGuizmo
+A clone of [imoguizmo](https://github.com/fknfilewalker/imoguizmo) stripped of interactive functions and using an [ImGuizmo](https://github.com/CedricGuillemet/ImGuizmo)-ish style of rendering. 
+
+This also includes a fix for the stretching problem if the projection matrix's aspect ratio is not equal to 1:1.
+
 A simple C++11 header only interactive orientation gizmo for ImGui. 
-
-## Usage
+## Usage example
 ```c++
-#include "imoguizmo.hpp"
+#include "ImViewGuizmo.hpp"
 
-// it is recommended to use a separate projection matrix since the values that work best
-// can be very different from what works well with normal renderings
-// aspect ratio should be 1 otherwise axes would scale differently
-// e.g. with glm -> glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 1000.0f);
-
-// specify position and size of guizmo window
-// optional: set distance to pivot (-> activates interaction)
-// optional: show background
-if(ImOGuizmo::drawGizmo(viewMatrix, projMat, { 0.0f, 0.0f }, 120.0f, pivotDistance, false))
+ImGui::Begin("RenderView", nullptr);
 {
-	// in case of user interaction viewMatrix gets updated
+	wsize = ImGui::GetWindowSize();
+	//All of your rendering view code...
+
+	if (glIsTexture(m_frameBufferTex)) {
+		ImGui::Image((ImTextureID)m_frameBufferTex, wsize, ImVec2(0, 1), ImVec2(1, 0));
+		//Draw ImGuizmo
+		_drawGuizmo();
+
+		//Draw ImViewGuizmo
+		if (m_pCurrCamera != nullptr) {
+			auto viewMatrix = (float*)glm::value_ptr(m_pCurrCamera->getViewMatrix());
+			auto projMat = glm::value_ptr(m_pCurrCamera->getProjectionMatrix());
+
+			ImViewGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y + wsize.y - 150, 150, 150);
+			ImViewGuizmo::drawGizmo(viewMatrix, projMat, (float)m_rendererWidth / (float)m_rendererHeight);
+		}
+	}
+	ImGui::End();
 }
+
 ```
-Drag|Click
-:-:|:-:
-![drag_example](images/drag.gif)  |  ![click_example](images/click.gif)
+Note: ImViewGuizmo::drawGizmo() must be called inside an ImGui window.
+
+Drag
+![drag_example](images/drag.gif)
 
 [License (MIT)](https://github.com/fknfilewalker/imoguizmo/blob/main/LICENSE)
